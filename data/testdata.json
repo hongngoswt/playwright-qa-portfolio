@@ -1,0 +1,22 @@
+{
+  "users": {
+    "default": {
+      "email": "hongngo123@test.com",
+      "password": "Test@1234",
+      "username": "hongngo123"
+    }
+  },
+  "articles": {
+    "default": {
+      "title": "Test Article",
+      "description": "Test article description",
+      "body": "This is the body of the test article.",
+      "tagList": ["test", "playwright"]
+    }
+  },
+  "comments": {
+    "default": {
+      "body": "This is a test comment."
+    }
+  }
+}
