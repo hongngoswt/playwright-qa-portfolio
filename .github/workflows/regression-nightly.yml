@@ -1,0 +1,60 @@
+name: Regression Tests — Nightly
+
+on:
+  schedule:
+    - cron: '0 16 * * *'   # 16:00 UTC = 23:00 Vietnam (ICT, UTC+7)
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: 'Test suite to run'
+        type: choice
+        options:
+          - smoke
+          - regression
+          - api
+          - all
+        default: regression
+
+jobs:
+  regression:
+    name: Run ${{ inputs.suite || 'regression' }} suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright (Chromium only)
+        run: npx playwright install --with-deps chromium
+
+      - name: Run tests
+        env:
+          SUITE: ${{ inputs.suite }}
+        run: |
+          # When triggered by schedule, inputs.suite is empty — default to @regression.
+          # When triggered by workflow_dispatch, use the selected suite.
+          case "$SUITE" in
+            smoke)  npx playwright test --grep @smoke ;;
+            api)    npx playwright test --grep @api ;;
+            all)    npx playwright test ;;
+            *)      npx playwright test --grep @regression ;;
+          esac
+
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-nightly
+          path: playwright-report/
+          retention-days: 7
